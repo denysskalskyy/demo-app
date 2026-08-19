@@ -108,15 +108,15 @@
       </div>
     </section>
 
-    <!-- Visualization Section: Weekly Average Bar Chart -->
+    <!-- Visualization Section: Daily Exchange Rate Bar Chart -->
     <section class="bg-slate-800/80 border border-slate-700/70 rounded-xl p-6 shadow-sm flex flex-col space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 class="text-lg font-bold text-slate-100">Weekly Average Exchange Rate (CAD per 1 USD)</h2>
-          <p class="text-xs text-slate-400">Aggregated periodic averages within selected date filter range</p>
+          <h2 class="text-lg font-bold text-slate-100">Daily Exchange Rate (CAD per 1 USD)</h2>
+          <p class="text-xs text-slate-400">Daily spot rates within selected date filter range</p>
         </div>
         <div id="chartStats" class="text-xs text-indigo-300 font-mono bg-indigo-950/50 px-2.5 py-1 rounded border border-indigo-800/50 self-start sm:self-auto">
-          Displaying weekly intervals
+          Displaying daily rates
         </div>
       </div>
       <div class="relative w-full h-72 sm:h-80">
@@ -186,24 +186,14 @@
     const DEFAULT_END = "2026-08-14";
 
     /**
-     * Compute weekly grouping and averages for Bar Chart
+     * Compute daily rates for Bar Chart
      * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
      */
-    function calculateWeeklyAverages(dataSlice) {
-      const weekBuckets = {};
+    function calculateDailyRates(dataSlice) {
+      const labels = [];
+      const rates = [];
 
       dataSlice.forEach(item => {
-        const dt = new Date(item.date + "T00:00:00Z");
-        // Compute start of week (Monday)
-        const day = dt.getUTCDay();
-        const diff = dt.getUTCDate() - day + (day === 0 ? -6 : 1);
-        const monday = new Date(dt.setDate(diff));
-        const weekKey = "Week of " + monday.toISOString().split('T')[0];
-
-        if (!weekBuckets[weekKey]) {
-          weekBuckets[weekKey] = [];
-        }
-
         // =========================================================
         // INTENTIONAL PARSING BUG:
         // Calling parseFloat(item.rate) directly on string.
@@ -218,23 +208,17 @@
           );
         }
 
-        weekBuckets[weekKey].push(parsedRate);
+        labels.push(item.date);
+        rates.push(parsedRate);
       });
 
-      const labels = Object.keys(weekBuckets);
-      const averages = labels.map(key => {
-        const rates = weekBuckets[key];
-        const sum = rates.reduce((acc, val) => acc + val, 0);
-        return parseFloat((sum / rates.length).toFixed(4));
-      });
-
-      return { labels, averages };
+      return { labels, rates };
     }
 
     /**
      * Render the Chart.js Bar Chart
      */
-    function renderChart(labels, averages) {
+    function renderChart(labels, rates) {
       const ctx = document.getElementById('exchangeRateChart').getContext('2d');
 
       if (chartInstance) {
@@ -246,8 +230,8 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Weekly Average (CAD / USD)',
-            data: averages,
+            label: 'Daily Rate (CAD / USD)',
+            data: rates,
             backgroundColor: 'rgba(99, 102, 241, 0.65)',
             borderColor: 'rgba(129, 140, 248, 1)',
             borderWidth: 1.5,
@@ -347,8 +331,8 @@
       }
 
       // 1. Process Chart Data (will trigger bug if ND present)
-      const { labels, averages } = calculateWeeklyAverages(filtered);
-      renderChart(labels, averages);
+      const { labels, rates } = calculateDailyRates(filtered);
+      renderChart(labels, rates);
 
       // 2. Process Table Data (will trigger bug if ND present)
       renderTable(filtered);
