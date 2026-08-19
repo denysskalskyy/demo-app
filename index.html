@@ -87,7 +87,7 @@
     <!-- Period Filter Panel -->
     <section class="bg-slate-800/80 border border-slate-700/70 rounded-xl p-5 shadow-sm backdrop-blur-md">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full sm:w-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full sm:w-auto">
           <div>
             <label for="startDate" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Start Date</label>
             <input type="date" id="startDate" class="w-full sm:w-48 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
@@ -95,6 +95,15 @@
           <div>
             <label for="endDate" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">End Date</label>
             <input type="date" id="endDate" class="w-full sm:w-48 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          </div>
+          <div>
+            <label for="aggregation" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Aggregation</label>
+            <select id="aggregation" class="w-full sm:w-48 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="day" selected>Daily</option>
+              <option value="week">Weekly Average</option>
+              <option value="month">Monthly Average</option>
+              <option value="quarter">Quarterly Average</option>
+            </select>
           </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -216,9 +225,101 @@
     }
 
     /**
+     * Compute weekly grouping and averages for Bar Chart
+     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     */
+    function calculateWeeklyAverages(dataSlice) {
+      const buckets = {};
+      dataSlice.forEach(item => {
+        const parsedRate = parseFloat(item.rate);
+        if (isNaN(parsedRate)) {
+          throw new TypeError(
+            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
+          );
+        }
+        
+        const dt = new Date(item.date + "T00:00:00Z");
+        const day = dt.getUTCDay();
+        const diff = dt.getUTCDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(dt.setDate(diff));
+        const key = "Week of " + monday.toISOString().split('T')[0];
+
+        if (!buckets[key]) buckets[key] = [];
+        buckets[key].push(parsedRate);
+      });
+
+      const labels = Object.keys(buckets);
+      const rates = labels.map(key => {
+        const vals = buckets[key];
+        return parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(4));
+      });
+      return { labels, rates };
+    }
+
+    /**
+     * Compute monthly grouping and averages for Bar Chart
+     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     */
+    function calculateMonthlyAverages(dataSlice) {
+      const buckets = {};
+      dataSlice.forEach(item => {
+        const parsedRate = parseFloat(item.rate);
+        if (isNaN(parsedRate)) {
+          throw new TypeError(
+            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
+          );
+        }
+
+        const dt = new Date(item.date + "T00:00:00Z");
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const key = `${monthNames[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
+
+        if (!buckets[key]) buckets[key] = [];
+        buckets[key].push(parsedRate);
+      });
+
+      const labels = Object.keys(buckets);
+      const rates = labels.map(key => {
+        const vals = buckets[key];
+        return parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(4));
+      });
+      return { labels, rates };
+    }
+
+    /**
+     * Compute quarterly grouping and averages for Bar Chart
+     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     */
+    function calculateQuarterlyAverages(dataSlice) {
+      const buckets = {};
+      dataSlice.forEach(item => {
+        const parsedRate = parseFloat(item.rate);
+        if (isNaN(parsedRate)) {
+          throw new TypeError(
+            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
+          );
+        }
+
+        const dt = new Date(item.date + "T00:00:00Z");
+        const quarter = Math.floor(dt.getUTCMonth() / 3) + 1;
+        const key = `${dt.getUTCFullYear()} Q${quarter}`;
+
+        if (!buckets[key]) buckets[key] = [];
+        buckets[key].push(parsedRate);
+      });
+
+      const labels = Object.keys(buckets);
+      const rates = labels.map(key => {
+        const vals = buckets[key];
+        return parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(4));
+      });
+      return { labels, rates };
+    }
+
+    /**
      * Render the Chart.js Bar Chart
      */
-    function renderChart(labels, rates) {
+    function renderChart(labels, rates, labelSuffix) {
       const ctx = document.getElementById('exchangeRateChart').getContext('2d');
 
       if (chartInstance) {
@@ -230,7 +331,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Daily Rate (CAD / USD)',
+            label: `${labelSuffix} (CAD / USD)`,
             data: rates,
             backgroundColor: 'rgba(99, 102, 241, 0.65)',
             borderColor: 'rgba(129, 140, 248, 1)',
@@ -330,9 +431,32 @@
         return;
       }
 
-      // 1. Process Chart Data (will trigger bug if ND present)
-      const { labels, rates } = calculateDailyRates(filtered);
-      renderChart(labels, rates);
+      // 1. Process Chart Data according to aggregation (will trigger bug if ND present)
+      const aggType = document.getElementById('aggregation').value;
+      let chartData;
+      let labelSuffix = '';
+      let statsText = '';
+
+      if (aggType === 'day') {
+        chartData = calculateDailyRates(filtered);
+        labelSuffix = 'Daily';
+        statsText = 'Displaying daily rates';
+      } else if (aggType === 'week') {
+        chartData = calculateWeeklyAverages(filtered);
+        labelSuffix = 'Weekly Average';
+        statsText = 'Displaying weekly averages';
+      } else if (aggType === 'month') {
+        chartData = calculateMonthlyAverages(filtered);
+        labelSuffix = 'Monthly Average';
+        statsText = 'Displaying monthly averages';
+      } else if (aggType === 'quarter') {
+        chartData = calculateQuarterlyAverages(filtered);
+        labelSuffix = 'Quarterly Average';
+        statsText = 'Displaying quarterly averages';
+      }
+
+      document.getElementById('chartStats').textContent = statsText;
+      renderChart(chartData.labels, chartData.rates, labelSuffix);
 
       // 2. Process Table Data (will trigger bug if ND present)
       renderTable(filtered);
@@ -344,6 +468,7 @@
     function resetToDefault() {
       document.getElementById('startDate').value = DEFAULT_START;
       document.getElementById('endDate').value = DEFAULT_END;
+      document.getElementById('aggregation').value = 'day';
       updateDashboard(DEFAULT_START, DEFAULT_END);
     }
 
@@ -358,6 +483,12 @@
 
         // Bind filter event listeners
         document.getElementById('applyFilterBtn').addEventListener('click', () => {
+          const s = document.getElementById('startDate').value;
+          const e = document.getElementById('endDate').value;
+          updateDashboard(s, e);
+        });
+
+        document.getElementById('aggregation').addEventListener('change', () => {
           const s = document.getElementById('startDate').value;
           const e = document.getElementById('endDate').value;
           updateDashboard(s, e);
