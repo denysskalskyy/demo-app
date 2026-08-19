@@ -37,15 +37,15 @@
 <body class="min-h-screen bg-slate-900 text-slate-100 flex flex-col antialiased">
 
   <!-- Global Error Alert Banner (Hidden by default) -->
-  <div id="errorBanner" class="hidden bg-red-600/90 border-b border-red-500 text-white px-4 py-3 shadow-lg sticky top-0 z-50 backdrop-blur-md transition-all duration-300">
+  <div id="errorBanner" class="hidden bg-red-600/95 border-b border-red-500 text-white px-4 py-3.5 shadow-xl sticky top-0 z-50 backdrop-blur-md transition-all duration-300">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <svg class="w-6 h-6 flex-shrink-0 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-6 h-6 flex-shrink-0 text-red-100 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
-        <span id="errorMessage" class="font-medium text-sm sm:text-base">Application Error: Failed to parse index database. Check browser console for details.</span>
+        <span id="errorMessage" class="font-semibold text-sm sm:text-base tracking-wide">Application Error: Failed to parse index database. Check browser console for details.</span>
       </div>
-      <button onclick="document.getElementById('errorBanner').classList.add('hidden')" class="text-red-200 hover:text-white p-1 rounded-md focus:outline-none">
+      <button onclick="document.getElementById('errorBanner').classList.add('hidden')" class="text-red-200 hover:text-white p-1.5 rounded-lg hover:bg-red-700/50 focus:outline-none transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
@@ -60,25 +60,25 @@
     <header class="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-slate-800 gap-4">
       <div>
         <div class="flex items-center space-x-3">
-          <div class="p-2 bg-indigo-600/20 border border-indigo-500/30 rounded-lg">
-            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-2.5 bg-indigo-600/20 border border-indigo-500/30 rounded-xl shadow-inner">
+            <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Acme Forex Analytics Dashboard</h1>
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Acme Forex Analytics Dashboard</h1>
         </div>
-        <p class="text-sm sm:text-base text-slate-400 mt-1 ml-11">CAD vs USD Historical Spot Rates (DEXCAUS)</p>
+        <p class="text-sm sm:text-base text-slate-400 mt-1 ml-12">CAD vs USD Historical Spot Rates (DEXCAUS)</p>
       </div>
 
       <!-- Quick Metrics Summary -->
       <div class="flex items-center space-x-4 bg-slate-800/60 border border-slate-700/60 rounded-xl px-4 py-2.5 backdrop-blur-sm self-start md:self-auto">
         <div>
-          <span class="text-xs text-slate-400 uppercase tracking-wider block">Target Currency</span>
-          <span class="text-sm font-semibold text-indigo-400">USD / CAD</span>
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Target Currency</span>
+          <span class="text-sm font-bold text-indigo-400">CAD / USD</span>
         </div>
         <div class="h-8 w-px bg-slate-700"></div>
         <div>
-          <span class="text-xs text-slate-400 uppercase tracking-wider block">Data Source</span>
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Data Feed</span>
           <span class="text-sm font-semibold text-slate-200">FRED (DEXCAUS)</span>
         </div>
       </div>
@@ -90,18 +90,18 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full sm:w-auto">
           <div>
             <label for="startDate" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Start Date</label>
-            <input type="date" id="startDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+            <input type="date" id="startDate" class="w-full sm:w-48 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
           </div>
           <div>
             <label for="endDate" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">End Date</label>
-            <input type="date" id="endDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+            <input type="date" id="endDate" class="w-full sm:w-48 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
           </div>
         </div>
         <div class="flex items-center space-x-3">
           <button id="resetDefaultBtn" class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-600/50">
             Reset to Last Week
           </button>
-          <button id="applyFilterBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
+          <button id="applyFilterBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors">
             Apply Filter
           </button>
         </div>
@@ -116,7 +116,7 @@
           <p class="text-xs text-slate-400">Aggregated periodic averages within selected date filter range</p>
         </div>
         <div id="chartStats" class="text-xs text-indigo-300 font-mono bg-indigo-950/50 px-2.5 py-1 rounded border border-indigo-800/50 self-start sm:self-auto">
-          Displaying aggregated weekly intervals
+          Displaying weekly intervals
         </div>
       </div>
       <div class="relative w-full h-72 sm:h-80">
@@ -129,7 +129,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-lg font-bold text-slate-100">Detailed Spot Rate Records</h2>
-          <p class="text-xs text-slate-400">Daily spot rates with real-time inversion calculations</p>
+          <p class="text-xs text-slate-400">Daily spot rates with on-the-fly inversion calculations</p>
         </div>
         <span id="recordCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-700 text-slate-300">
           0 records
@@ -160,5 +160,235 @@
     Acme Forex Analytics Dashboard &bull; Powered by Chart.js & Tailwind CSS &bull; Hosted on GitHub Pages
   </footer>
 
+  <!-- Core Dashboard Application Script -->
+  <script>
+    // -------------------------------------------------------------
+    // GLOBAL ERROR HANDLER (INTERCEPTOR)
+    // -------------------------------------------------------------
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.error(
+        `[CRITICAL UI EXCEPTION] In data processing pipeline:\nMessage: ${message}\nLocation: ${source}:${lineno}:${colno}\nStack:\n`,
+        error ? error.stack : 'No stack available'
+      );
+      const banner = document.getElementById('errorBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+      }
+      return false; // Propagate to browser console
+    };
+
+    // State
+    let allRates = [];
+    let chartInstance = null;
+
+    // Default 5-day active weekday period
+    const DEFAULT_START = "2026-08-10";
+    const DEFAULT_END = "2026-08-14";
+
+    /**
+     * Compute weekly grouping and averages for Bar Chart
+     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     */
+    function calculateWeeklyAverages(dataSlice) {
+      const weekBuckets = {};
+
+      dataSlice.forEach(item => {
+        const dt = new Date(item.date + "T00:00:00Z");
+        // Compute start of week (Monday)
+        const day = dt.getUTCDay();
+        const diff = dt.getUTCDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(dt.setDate(diff));
+        const weekKey = "Week of " + monday.toISOString().split('T')[0];
+
+        if (!weekBuckets[weekKey]) {
+          weekBuckets[weekKey] = [];
+        }
+
+        // =========================================================
+        // INTENTIONAL PARSING BUG:
+        // Calling parseFloat(item.rate) directly on string.
+        // When item.rate is "ND", parseFloat("ND") returns NaN.
+        // When item.rate is "ND", this deliberately throws TypeError
+        // simulating the unhandled parse crash when spanning weekends.
+        // =========================================================
+        const parsedRate = parseFloat(item.rate);
+        if (isNaN(parsedRate)) {
+          throw new TypeError(
+            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
+          );
+        }
+
+        weekBuckets[weekKey].push(parsedRate);
+      });
+
+      const labels = Object.keys(weekBuckets);
+      const averages = labels.map(key => {
+        const rates = weekBuckets[key];
+        const sum = rates.reduce((acc, val) => acc + val, 0);
+        return parseFloat((sum / rates.length).toFixed(4));
+      });
+
+      return { labels, averages };
+    }
+
+    /**
+     * Render the Chart.js Bar Chart
+     */
+    function renderChart(labels, averages) {
+      const ctx = document.getElementById('exchangeRateChart').getContext('2d');
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Weekly Average (CAD / USD)',
+            data: averages,
+            backgroundColor: 'rgba(99, 102, 241, 0.65)',
+            borderColor: 'rgba(129, 140, 248, 1)',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            hoverBackgroundColor: 'rgba(129, 140, 248, 0.85)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              labels: { color: '#cbd5e1', font: { size: 12 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` Rate: ${context.parsed.y.toFixed(4)} CAD`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: 1.30,
+              max: 1.45,
+              grid: { color: 'rgba(51, 65, 85, 0.3)' },
+              ticks: {
+                color: '#94a3b8',
+                callback: function(val) { return val.toFixed(2); }
+              }
+            },
+            x: {
+              grid: { color: 'rgba(51, 65, 85, 0.15)' },
+              ticks: { color: '#cbd5e1' }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * Render the Detailed Table
+     * INTENTIONAL FLAW EMBEDDED: Inversion calculation calls 1 / parseFloat(item.rate)
+     */
+    function renderTable(dataSlice) {
+      const tbody = document.getElementById('ratesTableBody');
+      tbody.innerHTML = '';
+
+      dataSlice.forEach(item => {
+        // =========================================================
+        // INTENTIONAL PARSING BUG:
+        // Evaluates 1 / parseFloat(item.rate) directly
+        // =========================================================
+        const parsedRate = parseFloat(item.rate);
+        if (isNaN(parsedRate)) {
+          throw new TypeError(
+            `Inversion parse failure on ${item.date}: 1 / parseFloat("${item.rate}") is invalid (NaN).`
+          );
+        }
+
+        const invertedRate = (1 / parsedRate).toFixed(4);
+        const statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/70 text-emerald-400 border border-emerald-800/50"><span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400"></span>Market Open</span>`;
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/60 transition-colors';
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-medium text-slate-200">${item.date}</td>
+          <td class="px-4 py-3 text-slate-100">${item.rate}</td>
+          <td class="px-4 py-3 text-indigo-300">${invertedRate}</td>
+          <td class="px-4 py-3">${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('recordCountBadge').textContent = `${dataSlice.length} records`;
+    }
+
+    /**
+     * Update Dashboard according to Start and End Dates
+     */
+    function updateDashboard(startStr, endStr) {
+      document.getElementById('errorBanner').classList.add('hidden');
+
+      const filtered = allRates.filter(item => {
+        return item.date >= startStr && item.date <= endStr;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById('ratesTableBody').innerHTML = `
+          <tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">No records found for the selected date range.</td></tr>
+        `;
+        if (chartInstance) chartInstance.destroy();
+        document.getElementById('recordCountBadge').textContent = "0 records";
+        return;
+      }
+
+      // 1. Process Chart Data (will trigger bug if ND present)
+      const { labels, averages } = calculateWeeklyAverages(filtered);
+      renderChart(labels, averages);
+
+      // 2. Process Table Data (will trigger bug if ND present)
+      renderTable(filtered);
+    }
+
+    /**
+     * Reset to default 5 active weekday view
+     */
+    function resetToDefault() {
+      document.getElementById('startDate').value = DEFAULT_START;
+      document.getElementById('endDate').value = DEFAULT_END;
+      updateDashboard(DEFAULT_START, DEFAULT_END);
+    }
+
+    // Initialize application
+    async function initDashboard() {
+      try {
+        const response = await fetch('./rates.json');
+        if (!response.ok) {
+          throw new Error(`Failed to load rates.json: ${response.status} ${response.statusText}`);
+        }
+        allRates = await response.json();
+
+        // Bind filter event listeners
+        document.getElementById('applyFilterBtn').addEventListener('click', () => {
+          const s = document.getElementById('startDate').value;
+          const e = document.getElementById('endDate').value;
+          updateDashboard(s, e);
+        });
+
+        document.getElementById('resetDefaultBtn').addEventListener('click', resetToDefault);
+
+        // Load default view (active weekdays only)
+        resetToDefault();
+      } catch (err) {
+        window.onerror(err.message, 'index.html', 0, 0, err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initDashboard);
+  </script>
 </body>
 </html>
