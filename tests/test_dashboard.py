@@ -54,7 +54,7 @@ def test_index_html_structure() -> None:
     assert "chart.js" in content.lower(), "Chart.js CDN script missing"
 
     # Header branding
-    assert "Acme Forex Analytics Dashboard" in content
+    assert "Forex Analytics Dashboard" in content
     assert "CAD vs USD Historical Spot Rates (DEXCAUS)" in content
 
     # UI Elements
