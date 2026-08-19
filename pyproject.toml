@@ -1,7 +1,7 @@
 [project]
 name = "post-delivery-support-demo-app"
 version = "0.1.0"
-description = "Acme Forex Analytics Dashboard - CAD vs USD spot rates analytics sandbox"
+description = "Forex Analytics Dashboard - CAD vs USD spot rates analytics sandbox"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []

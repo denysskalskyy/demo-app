@@ -1,4 +1,4 @@
-# Acme Forex Analytics Dashboard
+# Forex Analytics Dashboard
 
 A responsive, single-page CAD vs. USD Spot Rate Analytics Dashboard built with Tailwind CSS and Chart.js, designed as a human-governed sandbox application.
 
