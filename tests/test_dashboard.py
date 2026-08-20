@@ -118,3 +118,39 @@ def test_github_pages_workflow_syntax() -> None:
     assert workflow["permissions"].get("pages") == "write"
     assert "jobs" in workflow
     assert "deploy" in workflow["jobs"]
+
+
+def test_customer_documentation_files_exist() -> None:
+    """Validates that customer documentation markdown files exist in docs/."""
+    docs_dir = REPO_ROOT / "docs"
+    assert docs_dir.exists() and docs_dir.is_dir(), "docs/ directory must exist"
+
+    required_files = ["quickstart.md", "manual.md", "faq.md"]
+    for filename in required_files:
+        filepath = docs_dir / filename
+        assert filepath.exists(), f"{filename} must exist in docs/"
+        content = filepath.read_text(encoding="utf-8")
+        assert len(content.strip()) > 0, f"{filename} must not be empty"
+
+
+def test_customer_documentation_ui_elements() -> None:
+    """Validates that Help/Docs UI elements are integrated in index.html."""
+    html_path = REPO_ROOT / "index.html"
+    assert html_path.exists()
+    content = html_path.read_text(encoding="utf-8")
+
+    # Help button and modal containers
+    assert 'id="openDocsBtn"' in content, "Help button trigger missing"
+    assert 'id="docsModal"' in content, "Docs modal container missing"
+    assert 'id="docsModalBackdrop"' in content, "Docs modal backdrop backdrop missing"
+    assert 'id="closeDocsBtn"' in content, "Docs modal close button missing"
+
+    # Navigation Tabs
+    assert 'id="tabQuickstartBtn"' in content, "Quickstart tab button missing"
+    assert 'id="tabManualBtn"' in content, "Manual tab button missing"
+    assert 'id="tabFaqBtn"' in content, "FAQ tab button missing"
+
+    # Content Containers
+    assert 'id="tabQuickstartContent"' in content, "Quickstart content container missing"
+    assert 'id="tabManualContent"' in content, "Manual content container missing"
+    assert 'id="tabFaqContent"' in content, "FAQ content container missing"

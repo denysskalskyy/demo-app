@@ -70,17 +70,26 @@
         <p class="text-sm sm:text-base text-slate-400 mt-1 ml-12">CAD vs USD Historical Spot Rates (DEXCAUS)</p>
       </div>
 
-      <!-- Quick Metrics Summary -->
-      <div class="flex items-center space-x-4 bg-slate-800/60 border border-slate-700/60 rounded-xl px-4 py-2.5 backdrop-blur-sm self-start md:self-auto">
-        <div>
-          <span class="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Target Currency</span>
-          <span class="text-sm font-bold text-indigo-400">CAD / USD</span>
+      <!-- Quick Metrics Summary & Documentation Link -->
+      <div class="flex flex-wrap items-center gap-4 self-start md:self-auto">
+        <div class="flex items-center space-x-4 bg-slate-800/60 border border-slate-700/60 rounded-xl px-4 py-2.5 backdrop-blur-sm">
+          <div>
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Target Currency</span>
+            <span class="text-sm font-bold text-indigo-400">CAD / USD</span>
+          </div>
+          <div class="h-8 w-px bg-slate-700"></div>
+          <div>
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Data Feed</span>
+            <span class="text-sm font-semibold text-slate-200">FRED (DEXCAUS)</span>
+          </div>
         </div>
-        <div class="h-8 w-px bg-slate-700"></div>
-        <div>
-          <span class="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Data Feed</span>
-          <span class="text-sm font-semibold text-slate-200">FRED (DEXCAUS)</span>
-        </div>
+
+        <button id="openDocsBtn" class="flex items-center space-x-2 px-4 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 font-semibold text-sm rounded-xl border border-indigo-500/20 transition-all shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Help & Docs</span>
+        </button>
       </div>
     </header>
 
@@ -168,6 +177,158 @@
   <footer class="mt-auto border-t border-slate-800 bg-slate-950 py-4 text-center text-xs text-slate-500">
     Forex Analytics Dashboard &bull; Powered by Chart.js & Tailwind CSS &bull; Hosted on GitHub Pages
   </footer>
+
+  <!-- Help & Documentation Slide-over Modal -->
+  <div id="docsModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop overlay -->
+    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" id="docsModalBackdrop"></div>
+
+    <!-- Modal Content Container -->
+    <div class="fixed inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/40">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <h3 class="text-lg font-bold text-slate-100">Help & Documentation</h3>
+          </div>
+          <button id="closeDocsBtn" class="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-800 bg-slate-950/20 px-6 py-2 gap-2 overflow-x-auto">
+          <button id="tabQuickstartBtn" class="tab-btn px-4 py-2 text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 transition-all focus:outline-none">
+            Quick Start
+          </button>
+          <button id="tabManualBtn" class="tab-btn px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all focus:outline-none">
+            User Manual
+          </button>
+          <button id="tabFaqBtn" class="tab-btn px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all focus:outline-none">
+            FAQ
+          </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-grow overflow-y-auto p-6 md:p-8 space-y-6 text-slate-300">
+          
+          <!-- QUICKSTART TAB CONTENT -->
+          <div id="tabQuickstartContent" class="tab-content prose prose-invert max-w-none space-y-4">
+            <h2 class="text-xl font-bold text-slate-100 border-b border-slate-800 pb-2">Quick Start Guide</h2>
+            <p>Welcome to the <strong class="text-indigo-400">Forex Analytics Dashboard</strong>! This interactive proof-of-concept application is designed to analyze CAD vs. USD exchange rates (FRED DEXCAUS format).</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div class="p-4 bg-slate-800/45 border border-slate-700/50 rounded-xl">
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-wide">Step 1</span>
+                <h4 class="font-bold text-slate-100 mt-1 mb-2">Open App</h4>
+                <p class="text-xs text-slate-400">Simply run index.html in any modern web browser or open it through GitHub Pages.</p>
+              </div>
+              <div class="p-4 bg-slate-800/45 border border-slate-700/50 rounded-xl">
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-wide">Step 2</span>
+                <h4 class="font-bold text-slate-100 mt-1 mb-2">Configure Filters</h4>
+                <p class="text-xs text-slate-400">Select standard start/end dates and choose from Daily, Weekly, Monthly, or Quarterly aggregations.</p>
+              </div>
+              <div class="p-4 bg-slate-800/45 border border-slate-700/50 rounded-xl">
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-wide">Step 3</span>
+                <h4 class="font-bold text-slate-100 mt-1 mb-2">Analyze Data</h4>
+                <p class="text-xs text-slate-400">Hover over the bar chart for tooltips, and browse the rate table containing inverted calculations.</p>
+              </div>
+            </div>
+
+            <div class="p-4 bg-indigo-950/40 border border-indigo-800/40 rounded-xl mt-6">
+              <h4 class="font-bold text-indigo-300 text-sm mb-1">Restoring Defaults</h4>
+              <p class="text-xs text-slate-300">If you ever change dates and want to restore the dashboard to its original view, click the <strong>"Reset to Last Week"</strong> button. This instantly resets the calendar to the last active 5 weekdays: <strong>2026-08-10</strong> to <strong>2026-08-14</strong>.</p>
+            </div>
+          </div>
+
+          <!-- MANUAL TAB CONTENT -->
+          <div id="tabManualContent" class="tab-content hidden prose prose-invert max-w-none space-y-4">
+            <h2 class="text-xl font-bold text-slate-100 border-b border-slate-800 pb-2">User Manual</h2>
+            <p>This manual provides step-by-step instructions on utilizing the features of the Forex Analytics Dashboard.</p>
+            
+            <h3 class="text-lg font-bold text-slate-200 mt-6">1. Period Filter Panel</h3>
+            <p class="text-sm">The controls panel at the top of the interface governs the active historical dataset range:</p>
+            <ul class="list-disc pl-5 text-sm space-y-1.5 text-slate-300">
+              <li><strong>Start Date / End Date</strong>: Sets the boundaries for target analysis. The historical dataset stretches from <code class="text-indigo-300">2026-07-01</code> to <code class="text-indigo-300">2026-08-14</code>.</li>
+              <li><strong>Aggregation Selection</strong>: Choose how to bucket and analyze chart rates:
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                  <li><strong>Daily</strong>: Plots individual daily spot transaction rates.</li>
+                  <li><strong>Weekly Average</strong>: Groups active dates into weekly buckets, calculating the average rate.</li>
+                  <li><strong>Monthly Average</strong>: Groups records by calendar month to calculate monthly averages.</li>
+                  <li><strong>Quarterly Average</strong>: Groups records by calendar quarter to calculate quarterly averages.</li>
+                </ul>
+              </li>
+              <li><strong>Apply Filter Button</strong>: Reprocesses the chart metrics and rebuilds the detailed spot rate grid instantly.</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-slate-200 mt-6">2. Interactive Bar Chart</h3>
+            <p class="text-sm">An interactive representation of spot rates within your filtered window:</p>
+            <ul class="list-disc pl-5 text-sm space-y-1.5 text-slate-300">
+              <li><strong>Flexible Legends</strong>: The chart labels and legends automatically adjust to indicate the selected aggregation mode (e.g., Daily Rate, Weekly Average, Monthly Average).</li>
+              <li><strong>Tooltips</strong>: Hovering cursor over any individual bar provides precise popovers showing the bucket label and corresponding spot rate value in CAD.</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-slate-200 mt-6">3. Detailed Data Table</h3>
+            <p class="text-sm">A highly structured record ledger featuring on-the-fly math:</p>
+            <ul class="list-disc pl-5 text-sm space-y-1.5 text-slate-300">
+              <li><strong>Inverted Rates</strong>: Evaluates and renders `1 / rate` representing <strong class="text-indigo-300">USD per 1 CAD</strong> on-the-fly, rounded to 4 decimal places.</li>
+              <li><strong>Market Status Indicators</strong>: Dynamically maps each calendar day:
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                  <li><strong class="text-emerald-400">Market Open</strong> (Green Badge): Active weekdays with transaction rates.</li>
+                  <li><strong class="text-slate-400">Market Closed</strong> (Gray Badge): Weekends or holidays with no trading.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+
+          <!-- FAQ TAB CONTENT -->
+          <div id="tabFaqContent" class="tab-content hidden prose prose-invert max-w-none space-y-6">
+            <h2 class="text-xl font-bold text-slate-100 border-b border-slate-800 pb-2">Frequently Asked Questions (FAQ)</h2>
+            
+            <div class="space-y-4">
+              <div>
+                <h4 class="font-bold text-indigo-400 text-sm">Q1: Why does the dashboard crash and show a big red alert banner?</h4>
+                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: This is an intentional data-parsing bug built directly into our sandbox to demonstrate client-side exception interception:
+                  <ul class="list-disc pl-5 mt-1 text-xs text-slate-400 space-y-1">
+                    <li>The rates database maps weekends and market holidays to <code class="text-indigo-300">"ND"</code> (No Data).</li>
+                    <li>If your filters include a weekend date, the data processing pipeline runs an unchecked <code class="text-indigo-300">parseFloat("ND")</code>.</li>
+                    <li>This yields <code class="text-indigo-300">NaN</code>, throwing a critical unhandled <code class="text-rose-400">TypeError</code> that triggers the red exception banner.</li>
+                  </ul>
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-indigo-400 text-sm">Q2: How do I recover from a critical database parse crash?</h4>
+                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: Simply click the <strong class="text-slate-200">"Reset to Last Week"</strong> button. This instantly resets the calendar filters to active weekdays (avoiding weekends) and restores the dashboard's operational state.</p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-indigo-400 text-sm">Q3: Why do weekend records show "Market Closed"?</h4>
+                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: Weekend dates do not have active currency trading. They are mapped in our database with a rate value of <code class="text-indigo-300">"ND"</code> and displayed with a gray "Market Closed" status badge.</p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-indigo-400 text-sm">Q4: How is the inverted calculation computed?</h4>
+                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: The database stores rates as <em>CAD per 1 USD</em>. The table computes <code class="text-indigo-300">1 / rate</code> to display the inverse value representing <em>USD per 1 CAD</em>, rounded to 4 decimal places.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-slate-800 bg-slate-950/40 text-xs text-slate-500 text-center">
+          Forex Analytics Documentation Panel &bull; Available Offline &bull; Zero CDN Dependencies
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Core Dashboard Application Script -->
   <script>
@@ -495,6 +656,59 @@
         });
 
         document.getElementById('resetDefaultBtn').addEventListener('click', resetToDefault);
+
+        // -------------------------------------------------------------
+        // HELP & DOCUMENTATION MODAL EVENT LISTENERS
+        // -------------------------------------------------------------
+        const docsModal = document.getElementById('docsModal');
+        const openDocsBtn = document.getElementById('openDocsBtn');
+        const closeDocsBtn = document.getElementById('closeDocsBtn');
+        const backdrop = document.getElementById('docsModalBackdrop');
+
+        function openDocs() {
+          docsModal.classList.remove('hidden');
+          document.body.classList.add('overflow-hidden');
+        }
+
+        function closeDocs() {
+          docsModal.classList.add('hidden');
+          document.body.classList.remove('overflow-hidden');
+        }
+
+        openDocsBtn.addEventListener('click', openDocs);
+        closeDocsBtn.addEventListener('click', closeDocs);
+        backdrop.addEventListener('click', closeDocs);
+
+        // Escape key to close modal
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !docsModal.classList.contains('hidden')) {
+            closeDocs();
+          }
+        });
+
+        // Tab Navigation inside modal
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            // Reset active styles on all buttons
+            tabBtns.forEach(b => {
+              b.classList.remove('border-indigo-500', 'text-indigo-400');
+              b.classList.add('border-transparent', 'text-slate-400', 'hover:text-slate-200');
+            });
+            // Set active styles on clicked button
+            btn.classList.add('border-indigo-500', 'text-indigo-400');
+            btn.classList.remove('border-transparent', 'text-slate-400', 'hover:text-slate-200');
+
+            // Hide all tab contents
+            tabContents.forEach(c => c.classList.add('hidden'));
+
+            // Show active tab content
+            const targetId = btn.id.replace('Btn', 'Content');
+            document.getElementById(targetId).classList.remove('hidden');
+          });
+        });
 
         // Load default view (active weekdays only)
         resetToDefault();
