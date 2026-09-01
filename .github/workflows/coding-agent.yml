@@ -1,0 +1,123 @@
+name: Coding Agent
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: coding-agent-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    if: github.event.label.name == 'state:triage-in-progress'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+
+      - name: Implement issue
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          label_trigger: state:triage-in-progress
+          base_branch: main
+          branch_prefix: issue-
+          branch_name_template: "{{prefix}}{{entityNumber}}-{{description}}"
+          track_progress: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            ISSUE NUMBER: ${{ github.event.issue.number }}
+            ISSUE TITLE: ${{ github.event.issue.title }}
+
+            Implement GitHub issue #${{ github.event.issue.number }}.
+
+            Inspect the issue and repository before editing. Follow CLAUDE.md if
+            it exists, along with the repository's current architecture and conventions.
+            Make the smallest reasonable change that fully addresses the issue.
+
+            Add or update tests for changed behavior. Before finishing, run:
+            - uv run --frozen pytest
+            - uv run --frozen ruff check
+            - uv run --frozen mypy tests
+
+            Create one commit using this format:
+            <type>: <concise imperative summary> (Issue #${{ github.event.issue.number }})
+
+            Use feat, fix, test, docs, or chore for <type>. Do not change issue
+            labels or open a pull request; the workflow handles the pull request.
+          claude_args: |
+            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(uv run --frozen pytest:*),Bash(uv run --frozen ruff check:*),Bash(uv run --frozen mypy tests:*)"
+
+      - name: Require implementation branch
+        env:
+          IMPLEMENTATION_BRANCH: ${{ steps.claude.outputs.branch_name }}
+        run: |
+          if [[ -z "$IMPLEMENTATION_BRANCH" ]]; then
+            echo "Claude did not produce an implementation branch." >&2
+            exit 1
+          fi
+
+      - name: Run tests
+        run: uv run --frozen pytest
+
+      - name: Run static linting
+        run: uv run --frozen ruff check
+
+      - name: Run type checking
+        run: uv run --frozen mypy tests
+
+      - name: Open or reuse pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          IMPLEMENTATION_BRANCH: ${{ steps.claude.outputs.branch_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          existing_pr_url="$(
+            gh pr list \
+              --repo "$REPOSITORY" \
+              --head "$IMPLEMENTATION_BRANCH" \
+              --base main \
+              --state open \
+              --json url \
+              --jq '.[0].url // empty'
+          )"
+
+          if [[ -n "$existing_pr_url" ]]; then
+            echo "Pull request already exists: $existing_pr_url"
+            exit 0
+          fi
+
+          pr_body_file="$RUNNER_TEMP/coding-agent-pr-body.md"
+          {
+            printf 'Closes #%s\n\n' "$ISSUE_NUMBER"
+            printf '%s\n\n' 'Implemented automatically after the state:triage-in-progress label was applied.'
+            printf '%s\n' 'Validation:'
+            printf '%s\n' '- `uv run --frozen pytest`'
+            printf '%s\n' '- `uv run --frozen ruff check`'
+            printf '%s\n' '- `uv run --frozen mypy tests`'
+          } > "$pr_body_file"
+
+          gh pr create \
+            --repo "$REPOSITORY" \
+            --head "$IMPLEMENTATION_BRANCH" \
+            --base main \
+            --title "$ISSUE_TITLE" \
+            --body-file "$pr_body_file"
