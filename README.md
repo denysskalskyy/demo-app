@@ -28,3 +28,23 @@ uv run ruff check
 # Run type checking
 uv run mypy tests
 ```
+
+## Coding agent workflow
+
+The `Coding Agent` GitHub Actions workflow implements issues after a maintainer applies
+the `state:triage-in-progress` label. It requires a repository Actions secret named
+`CLAUDE_CODE_OAUTH_TOKEN`.
+
+Each run creates a branch named `issue-<number>-<title-slug>`. The title slug contains
+the first five words of the issue title. The agent makes one Conventional Commit in this
+format:
+
+```text
+<type>: <concise imperative summary> (Issue #<number>)
+```
+
+The type must be `feat`, `fix`, `test`, `docs`, or `chore`. The workflow runs the test,
+lint, and type-check commands above after the agent finishes. When all checks pass, it
+opens a ready pull request against `main` with `Closes #<number>` in the body. Repeated
+runs reuse an existing open pull request for the same branch. The workflow does not
+change issue labels.
