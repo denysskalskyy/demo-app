@@ -2,7 +2,6 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 
-import pytest
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -95,13 +94,46 @@ def test_default_date_range_calculations() -> None:
     assert 1.35 <= avg_rate <= 1.45, f"Weekly average {avg_rate} out of expected range"
 
 
-def test_intentional_nd_crash_trigger() -> None:
-    """Verifies that attempting unchecked parse on ND records produces ValueError."""
-    nd_record = {"date": "2026-08-15", "rate": "ND"}
+def test_nd_records_classified_not_thrown() -> None:
+    """Ensures ND records are classified as market-closed instead of crashing the parse path."""
+    html_path = REPO_ROOT / "index.html"
+    content = html_path.read_text(encoding="utf-8")
 
-    # Simulate JavaScript parseFloat("ND") behavior
-    with pytest.raises(ValueError):
-        float(nd_record["rate"])
+    assert "classifyRecord" in content, "Expected a record classification helper in index.html"
+    assert "isOpen" in content, "Expected a market-open/closed classification flag in index.html"
+    assert "throw new TypeError" not in content, (
+        "Unchecked ND parsing should no longer throw for market-closed records"
+    )
+    assert "Market Closed</span>" in content, "Expected a Market Closed badge to be rendered"
+
+
+def test_weekend_inclusive_filter_range_has_mixed_records() -> None:
+    """SUP-12's reported date window (2026-08-03 to 2026-08-14) mixes market-open and ND records."""
+    rates_path = REPO_ROOT / "rates.json"
+    with open(rates_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    sup12_slice = [item for item in data if "2026-08-03" <= item["date"] <= "2026-08-14"]
+    assert len(sup12_slice) == 12, "Expected 12 records in the SUP-12 date window"
+
+    closed = [item for item in sup12_slice if item["rate"] == "ND"]
+    open_records = [item for item in sup12_slice if item["rate"] != "ND"]
+    assert len(closed) == 2, "Expected 2 market-closed weekend records in the SUP-12 window"
+    assert len(open_records) == 10, "Expected 10 market-open records in the SUP-12 window"
+
+
+def test_weekend_inclusive_aggregation_uses_only_numeric_records() -> None:
+    """Aggregating a weekend-inclusive range must skip ND records and average only numeric rates."""
+    rates_path = REPO_ROOT / "rates.json"
+    with open(rates_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    sup12_slice = [item for item in data if "2026-08-03" <= item["date"] <= "2026-08-14"]
+    numeric_rates = [float(item["rate"]) for item in sup12_slice if item["rate"] != "ND"]
+
+    assert len(numeric_rates) == 10, "Expected 10 numeric market-open rates in the SUP-12 window"
+    avg_rate = sum(numeric_rates) / len(numeric_rates)
+    assert 1.35 <= avg_rate <= 1.45, f"Weekend-inclusive average {avg_rate} out of expected range"
 
 
 def test_github_pages_workflow_syntax() -> None:

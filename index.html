@@ -139,6 +139,9 @@
       </div>
       <div class="relative w-full h-72 sm:h-80">
         <canvas id="exchangeRateChart"></canvas>
+        <div id="chartEmptyState" class="hidden absolute inset-0 flex items-center justify-center text-sm text-slate-400 text-center px-6">
+          No market-open records in the selected range.
+        </div>
       </div>
     </section>
 
@@ -293,19 +296,18 @@
             
             <div class="space-y-4">
               <div>
-                <h4 class="font-bold text-indigo-400 text-sm">Q1: Why does the dashboard crash and show a big red alert banner?</h4>
-                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: This is an intentional data-parsing bug built directly into our sandbox to demonstrate client-side exception interception:
+                <h4 class="font-bold text-indigo-400 text-sm">Q1: Why do weekend or holiday dates show "Market Closed" instead of a rate?</h4>
+                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: The rates database maps weekends and market holidays to <code class="text-indigo-300">"ND"</code> (No Data).
                   <ul class="list-disc pl-5 mt-1 text-xs text-slate-400 space-y-1">
-                    <li>The rates database maps weekends and market holidays to <code class="text-indigo-300">"ND"</code> (No Data).</li>
-                    <li>If your filters include a weekend date, the data processing pipeline runs an unchecked <code class="text-indigo-300">parseFloat("ND")</code>.</li>
-                    <li>This yields <code class="text-indigo-300">NaN</code>, throwing a critical unhandled <code class="text-rose-400">TypeError</code> that triggers the red exception banner.</li>
+                    <li>These records are classified as market-closed and are excluded from numeric chart aggregation and the inverted rate calculation.</li>
+                    <li>They remain visible in the detailed table with a gray "Market Closed" badge and no inverted value.</li>
                   </ul>
                 </p>
               </div>
 
               <div>
-                <h4 class="font-bold text-indigo-400 text-sm">Q2: How do I recover from a critical database parse crash?</h4>
-                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: Simply click the <strong class="text-slate-200">"Reset to Last Week"</strong> button. This instantly resets the calendar filters to active weekdays (avoiding weekends) and restores the dashboard's operational state.</p>
+                <h4 class="font-bold text-indigo-400 text-sm">Q2: What happens if a filtered range has no market-open records?</h4>
+                <p class="text-sm text-slate-300 mt-1"><strong>A</strong>: The chart shows an empty-state message instead of a bar chart, and the table lists the market-closed rows. Click <strong class="text-slate-200">"Reset to Last Week"</strong> to return to the default active weekday range (<strong>2026-08-10</strong> to <strong>2026-08-14</strong>).</p>
               </div>
 
               <div>
@@ -356,49 +358,49 @@
     const DEFAULT_END = "2026-08-14";
 
     /**
-     * Compute daily rates for Bar Chart
-     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     * Classify a raw rates.json record as either a market-open numeric
+     * record or a market-closed ("ND"/non-numeric) record. Market-closed
+     * records are kept for table display but excluded from any numeric
+     * chart aggregation or inverse-rate calculation.
+     */
+    function classifyRecord(item) {
+      const rawRate = item.rate;
+      const isNumericString = typeof rawRate === 'string' && /^-?\d+(\.\d+)?$/.test(rawRate.trim());
+      const numericRate = isNumericString ? parseFloat(rawRate) : NaN;
+      const isOpen = isNumericString && Number.isFinite(numericRate);
+
+      return {
+        date: item.date,
+        rawRate: rawRate,
+        numericRate: isOpen ? numericRate : null,
+        isOpen: isOpen
+      };
+    }
+
+    /**
+     * Compute daily rates for Bar Chart.
+     * Market-closed records are skipped; only numeric market-open rates
+     * are plotted.
      */
     function calculateDailyRates(dataSlice) {
       const labels = [];
       const rates = [];
 
-      dataSlice.forEach(item => {
-        // =========================================================
-        // INTENTIONAL PARSING BUG:
-        // Calling parseFloat(item.rate) directly on string.
-        // When item.rate is "ND", parseFloat("ND") returns NaN.
-        // When item.rate is "ND", this deliberately throws TypeError
-        // simulating the unhandled parse crash when spanning weekends.
-        // =========================================================
-        const parsedRate = parseFloat(item.rate);
-        if (isNaN(parsedRate)) {
-          throw new TypeError(
-            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
-          );
-        }
-
+      dataSlice.filter(item => item.isOpen).forEach(item => {
         labels.push(item.date);
-        rates.push(parsedRate);
+        rates.push(item.numericRate);
       });
 
       return { labels, rates };
     }
 
     /**
-     * Compute weekly grouping and averages for Bar Chart
-     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     * Compute weekly grouping and averages for Bar Chart, using only
+     * market-open numeric records.
      */
     function calculateWeeklyAverages(dataSlice) {
       const buckets = {};
-      dataSlice.forEach(item => {
-        const parsedRate = parseFloat(item.rate);
-        if (isNaN(parsedRate)) {
-          throw new TypeError(
-            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
-          );
-        }
-        
+      dataSlice.filter(item => item.isOpen).forEach(item => {
         const dt = new Date(item.date + "T00:00:00Z");
         const day = dt.getUTCDay();
         const diff = dt.getUTCDate() - day + (day === 0 ? -6 : 1);
@@ -406,7 +408,7 @@
         const key = "Week of " + monday.toISOString().split('T')[0];
 
         if (!buckets[key]) buckets[key] = [];
-        buckets[key].push(parsedRate);
+        buckets[key].push(item.numericRate);
       });
 
       const labels = Object.keys(buckets);
@@ -418,25 +420,18 @@
     }
 
     /**
-     * Compute monthly grouping and averages for Bar Chart
-     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     * Compute monthly grouping and averages for Bar Chart, using only
+     * market-open numeric records.
      */
     function calculateMonthlyAverages(dataSlice) {
       const buckets = {};
-      dataSlice.forEach(item => {
-        const parsedRate = parseFloat(item.rate);
-        if (isNaN(parsedRate)) {
-          throw new TypeError(
-            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
-          );
-        }
-
+      dataSlice.filter(item => item.isOpen).forEach(item => {
         const dt = new Date(item.date + "T00:00:00Z");
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const key = `${monthNames[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
 
         if (!buckets[key]) buckets[key] = [];
-        buckets[key].push(parsedRate);
+        buckets[key].push(item.numericRate);
       });
 
       const labels = Object.keys(buckets);
@@ -448,25 +443,18 @@
     }
 
     /**
-     * Compute quarterly grouping and averages for Bar Chart
-     * INTENTIONAL FLAW EMBEDDED: Calls parseFloat without verifying if rate is "ND"
+     * Compute quarterly grouping and averages for Bar Chart, using only
+     * market-open numeric records.
      */
     function calculateQuarterlyAverages(dataSlice) {
       const buckets = {};
-      dataSlice.forEach(item => {
-        const parsedRate = parseFloat(item.rate);
-        if (isNaN(parsedRate)) {
-          throw new TypeError(
-            `Unhandled ND parsing error on ${item.date}: parseFloat("${item.rate}") produced NaN. Database index corrupted.`
-          );
-        }
-
+      dataSlice.filter(item => item.isOpen).forEach(item => {
         const dt = new Date(item.date + "T00:00:00Z");
         const quarter = Math.floor(dt.getUTCMonth() / 3) + 1;
         const key = `${dt.getUTCFullYear()} Q${quarter}`;
 
         if (!buckets[key]) buckets[key] = [];
-        buckets[key].push(parsedRate);
+        buckets[key].push(item.numericRate);
       });
 
       const labels = Object.keys(buckets);
@@ -481,12 +469,24 @@
      * Render the Chart.js Bar Chart
      */
     function renderChart(labels, rates, labelSuffix) {
-      const ctx = document.getElementById('exchangeRateChart').getContext('2d');
+      const canvas = document.getElementById('exchangeRateChart');
+      const emptyState = document.getElementById('chartEmptyState');
 
       if (chartInstance) {
         chartInstance.destroy();
+        chartInstance = null;
       }
 
+      if (rates.length === 0) {
+        canvas.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      canvas.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      const ctx = canvas.getContext('2d');
       chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -537,34 +537,35 @@
     }
 
     /**
-     * Render the Detailed Table
-     * INTENTIONAL FLAW EMBEDDED: Inversion calculation calls 1 / parseFloat(item.rate)
+     * Render the Detailed Table.
+     * Market-open records show their rate and inverted calculation.
+     * Market-closed records show "ND" with no inversion attempted.
      */
     function renderTable(dataSlice) {
       const tbody = document.getElementById('ratesTableBody');
       tbody.innerHTML = '';
 
       dataSlice.forEach(item => {
-        // =========================================================
-        // INTENTIONAL PARSING BUG:
-        // Evaluates 1 / parseFloat(item.rate) directly
-        // =========================================================
-        const parsedRate = parseFloat(item.rate);
-        if (isNaN(parsedRate)) {
-          throw new TypeError(
-            `Inversion parse failure on ${item.date}: 1 / parseFloat("${item.rate}") is invalid (NaN).`
-          );
-        }
+        let rateCell;
+        let invertedCell;
+        let statusBadge;
 
-        const invertedRate = (1 / parsedRate).toFixed(4);
-        const statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/70 text-emerald-400 border border-emerald-800/50"><span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400"></span>Market Open</span>`;
+        if (item.isOpen) {
+          rateCell = item.rawRate;
+          invertedCell = (1 / item.numericRate).toFixed(4);
+          statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/70 text-emerald-400 border border-emerald-800/50"><span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400"></span>Market Open</span>`;
+        } else {
+          rateCell = 'ND';
+          invertedCell = '&mdash;';
+          statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-700/70 text-slate-400 border border-slate-600/50"><span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-slate-400"></span>Market Closed</span>`;
+        }
 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-800/60 transition-colors';
         tr.innerHTML = `
           <td class="px-4 py-3 font-medium text-slate-200">${item.date}</td>
-          <td class="px-4 py-3 text-slate-100">${item.rate}</td>
-          <td class="px-4 py-3 text-indigo-300">${invertedRate}</td>
+          <td class="px-4 py-3 text-slate-100">${rateCell}</td>
+          <td class="px-4 py-3 text-indigo-300">${invertedCell}</td>
           <td class="px-4 py-3">${statusBadge}</td>
         `;
         tbody.appendChild(tr);
@@ -592,7 +593,7 @@
         return;
       }
 
-      // 1. Process Chart Data according to aggregation (will trigger bug if ND present)
+      // 1. Process Chart Data according to aggregation (market-closed ND records are excluded)
       const aggType = document.getElementById('aggregation').value;
       let chartData;
       let labelSuffix = '';
@@ -619,7 +620,7 @@
       document.getElementById('chartStats').textContent = statsText;
       renderChart(chartData.labels, chartData.rates, labelSuffix);
 
-      // 2. Process Table Data (will trigger bug if ND present)
+      // 2. Process Table Data (market-closed ND records render as Market Closed)
       renderTable(filtered);
     }
 
@@ -640,7 +641,8 @@
         if (!response.ok) {
           throw new Error(`Failed to load rates.json: ${response.status} ${response.statusText}`);
         }
-        allRates = await response.json();
+        const rawRates = await response.json();
+        allRates = rawRates.map(classifyRecord);
 
         // Bind filter event listeners
         document.getElementById('applyFilterBtn').addEventListener('click', () => {

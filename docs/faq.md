@@ -4,17 +4,15 @@ Find answers to common questions about using and troubleshooting the Forex Analy
 
 ---
 
-### Q1: Why does the dashboard crash and show a big red alert banner?
-**A**: This is an intentional simulation feature built into our sandbox environment to test error interception pipelines.
-*   **The Cause**: The spot rates database contains `"ND"` (No Data) values for weekends and market holidays. If you select a date range that spans a weekend (e.g., expanding the filter past a Friday into a Saturday or Sunday), the internal data processing pipeline runs an unchecked `parseFloat("ND")`. This produces `NaN`, throwing an unhandled `TypeError` inside the javascript aggregation/table calculations.
-*   **The Interception**: The dashboard intercepts this crash using a global `window.onerror` handler, displaying the red critical exception banner: *"Application Error: Failed to parse index database. Check browser console for details."*
+### Q1: Why do weekend or holiday dates show "Market Closed" instead of a rate?
+**A**: The spot rates database contains `"ND"` (No Data) values for weekends and market holidays.
+*   **Classification**: Each loaded record is classified once as either a market-open numeric record or a market-closed record. Market-closed records are excluded from chart aggregation and the inverted-rate calculation.
+*   **Display**: Market-closed records remain visible in the detailed table with a gray "Market Closed" badge and no inverted value. Filtering a range that spans a weekend or holiday (e.g. `2026-08-03` to `2026-08-14`) no longer triggers the application error banner.
 
 ---
 
-### Q2: How do I recover from a critical database parse crash?
-**A**: If the crash banner is active and the chart fails to load:
-1. Simply click the **"Reset to Last Week"** button in the filter panel.
-2. This resets the Start and End date pickers to a valid weekday-only range (`2026-08-10` to `2026-08-14`) and clears the error state.
+### Q2: What happens if a filtered range has no market-open records?
+**A**: The chart shows an empty-state message instead of a bar chart, and the table still lists the market-closed rows. Click the **"Reset to Last Week"** button in the filter panel to return to the default active weekday range (`2026-08-10` to `2026-08-14`).
 
 ---
 

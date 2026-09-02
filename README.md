@@ -8,7 +8,7 @@ A responsive, single-page CAD vs. USD Spot Rate Analytics Dashboard built with T
   - Weekly Average Bar Chart with bounded Y-axis.
   - Detailed Data Table with on-the-fly inverted calculations (`USD / CAD = 1 / rate`) and Market Status badges.
 - **Period Filter**: Interactive Start/End date pickers defaulting to the last active 5-weekday period (`2026-08-10` to `2026-08-14`).
-- **Intentional Test Sandbox Flaw**: Unhandled `"ND"` weekend rate parsing trigger with global `window.onerror` red banner interception.
+- **Market-Closed Handling**: Weekend/holiday `"ND"` records are classified as market-closed, shown in the table with a "Market Closed" badge, and excluded from chart aggregation. A global `window.onerror` handler remains in place for unexpected errors.
 - **Deployment**: Configured for continuous deployment to GitHub Pages via GitHub Actions.
 
 ## File Structure
