@@ -4,17 +4,16 @@ Find answers to common questions about using and troubleshooting the Forex Analy
 
 ---
 
-### Q1: Why does the dashboard crash and show a big red alert banner?
-**A**: This is an intentional simulation feature built into our sandbox environment to test error interception pipelines.
-*   **The Cause**: The spot rates database contains `"ND"` (No Data) values for weekends and market holidays. If you select a date range that spans a weekend (e.g., expanding the filter past a Friday into a Saturday or Sunday), the internal data processing pipeline runs an unchecked `parseFloat("ND")`. This produces `NaN`, throwing an unhandled `TypeError` inside the javascript aggregation/table calculations.
-*   **The Interception**: The dashboard intercepts this crash using a global `window.onerror` handler, displaying the red critical exception banner: *"Application Error: Failed to parse index database. Check browser console for details."*
+### Q1: Why do some dates show "Market Closed" instead of a rate?
+**A**: The spot rates database contains `"ND"` (No Data) values for weekends and market holidays.
+*   **Classification**: Before any calculations run, the dashboard classifies each record as either market-open (a valid numeric rate) or market-closed (`"ND"`).
+*   **Table display**: Market-closed records are still shown in the detailed table with a gray "Market Closed" badge, and no inverted calculation is attempted for them.
+*   **Chart aggregation**: Daily, weekly, monthly, and quarterly chart aggregations only use market-open numeric rates, so a filter range spanning a weekend or holiday (e.g. `2026-08-03` to `2026-08-14`) renders correctly without errors.
 
 ---
 
-### Q2: How do I recover from a critical database parse crash?
-**A**: If the crash banner is active and the chart fails to load:
-1. Simply click the **"Reset to Last Week"** button in the filter panel.
-2. This resets the Start and End date pickers to a valid weekday-only range (`2026-08-10` to `2026-08-14`) and clears the error state.
+### Q2: What does the "Reset to Last Week" button do?
+**A**: Click the **"Reset to Last Week"** button in the filter panel to restore the Start and End date pickers to the default active weekday range (`2026-08-10` to `2026-08-14`) and clear any prior error state.
 
 ---
 
