@@ -2,7 +2,6 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 
-import pytest
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -95,13 +94,51 @@ def test_default_date_range_calculations() -> None:
     assert 1.35 <= avg_rate <= 1.45, f"Weekly average {avg_rate} out of expected range"
 
 
-def test_intentional_nd_crash_trigger() -> None:
-    """Verifies that attempting unchecked parse on ND records produces ValueError."""
-    nd_record = {"date": "2026-08-15", "rate": "ND"}
+def test_sup12_weekend_inclusive_filtering_does_not_crash() -> None:
+    """Regression test for SUP-12: filtering a range that spans weekends
+    (2026-08-03 through 2026-08-14) must classify ND records as market-closed
+    and compute aggregations only from market-open numeric rates, without
+    raising, mirroring the classifyRecord/aggregation logic in index.html."""
+    rates_path = REPO_ROOT / "rates.json"
+    with open(rates_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-    # Simulate JavaScript parseFloat("ND") behavior
-    with pytest.raises(ValueError):
-        float(nd_record["rate"])
+    start, end = "2026-08-03", "2026-08-14"
+    filtered = [item for item in data if start <= item["date"] <= end]
+    assert any(item["rate"] == "ND" for item in filtered), (
+        "SUP-12 range must include at least one market-closed ND record"
+    )
+
+    def classify(rate: str) -> float | None:
+        try:
+            return float(rate)
+        except ValueError:
+            return None
+
+    classified_rates = [classify(item["rate"]) for item in filtered]
+    market_open = [rate for rate in classified_rates if rate is not None]
+    market_closed_count = sum(1 for rate in classified_rates if rate is None)
+
+    assert len(market_open) + market_closed_count == len(filtered)
+    assert market_closed_count > 0, "Expected at least one market-closed record in range"
+
+    # Aggregation must only use market-open numeric rates and must not raise.
+    avg_rate = sum(market_open) / len(market_open)
+    assert 1.30 <= avg_rate <= 1.50, f"Average rate {avg_rate} outside expected range"
+
+
+def test_index_html_classifies_nd_before_numeric_processing() -> None:
+    """Validates that index.html normalizes/classifies records instead of
+    running an unchecked parseFloat on ND market-closed values."""
+    html_path = REPO_ROOT / "index.html"
+    content = html_path.read_text(encoding="utf-8")
+
+    assert "classifyRecord" in content, "Record classification/normalization step missing"
+    assert "isMarketOpen" in content, "Market-open/closed classification flag missing"
+    assert "Market Closed" in content, "Market Closed status badge missing from table rendering"
+    assert "Database index corrupted" not in content, (
+        "Intentional unchecked-ND crash path should be removed"
+    )
 
 
 def test_github_pages_workflow_syntax() -> None:
